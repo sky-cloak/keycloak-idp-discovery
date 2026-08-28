@@ -34,8 +34,13 @@ show up as the "latest" version.
 
 ## Keycloak compatibility
 
-The release artifact is built against **Keycloak 26.6.3** and additionally compiled (not
-integration-tested) against **26.2.0** in CI, to catch SPI drift within the 26.x line early.
+The release artifact is built against and **pinned to Keycloak 26.6.3 only**. Unlike a
+typical SPI extension, this one extends Keycloak's internal implementation classes
+(`UsernamePasswordForm`, `IdentityProviderAuthenticator`), not just the public SPI surface.
+Confirmed by trying: it does not compile against Keycloak 26.2.0 without changes, so no
+older-version compile check runs in CI - a permanently-red check is not a real safety net.
+Bumping the supported Keycloak version means re-verifying the extension points against that
+version's real source first.
 
 ## Release process
 

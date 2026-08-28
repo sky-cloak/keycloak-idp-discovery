@@ -60,8 +60,11 @@ passkey, and second-factor steps after it are untouched.
 
 ## Keycloak compatibility
 
-Built against **Keycloak 26.6.3**; also compiled against **26.2.0** in CI to catch SPI drift
-within the 26.x line early.
+Built against and **pinned to Keycloak 26.6.3 only**. This extends Keycloak's internal
+implementation classes (`UsernamePasswordForm`, `IdentityProviderAuthenticator`) for correctness
+rather than reimplementing username/password/broker-redirect logic from scratch, and those
+internal classes genuinely differ across 26.x patch releases - confirmed, this does not compile
+against 26.2.0 without changes. See [VERSIONING.md](./VERSIONING.md).
 
 ---
 

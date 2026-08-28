@@ -24,7 +24,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
 
-        <!-- Match the fleet image. Override at build time: mvn -Dkeycloak.version=26.2.0 package -->
+        <!-- Pinned to the fleet image version. Unlike our other extensions, this one
+             extends Keycloak's internal implementation classes, not just the public
+             SPI, so other 26.x versions are not expected to compile without changes
+             (confirmed: 26.2.0 does not). See VERSIONING.md. -->
         <keycloak.version>26.6.3</keycloak.version>
 
         <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>

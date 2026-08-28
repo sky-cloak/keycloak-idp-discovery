@@ -19,8 +19,11 @@ jobs:
           java-version: "21"
           cache: maven
 
+      # No secondary "older Keycloak version" compile check here, unlike our
+      # other extensions. This one extends Keycloak's internal implementation
+      # classes (UsernamePasswordForm, IdentityProviderAuthenticator), not just
+      # the public SPI surface, and those genuinely differ across 26.x patch
+      # lines - confirmed: this does not compile against 26.2.0. Pinned to
+      # 26.6.3 only. See VERSIONING.md.
       - name: Test and package (Keycloak 26.6.3)
         run: mvn -B -Dkeycloak.version=26.6.3 verify
-
-      - name: Compile against Keycloak 26.2.0
-        run: mvn -B -Dkeycloak.version=26.2.0 clean compile
