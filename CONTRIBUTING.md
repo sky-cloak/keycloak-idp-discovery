@@ -5,11 +5,14 @@ Thanks for your interest in improving Keycloak IdP Discovery.
 ## Build
 
 ```bash
-mvn package                              # build + unit tests
-mvn -Dkeycloak.version=26.2.0 package    # build against a specific Keycloak version
+mvn package    # build + unit tests, against the pinned Keycloak version (see pom.xml)
 ```
 
-JDK 21 is used to build; the jar targets bytecode 17 and runs on Keycloak 26.
+JDK 21 is used to build; the jar targets bytecode 17. This extends Keycloak's
+internal implementation classes, not just the public SPI, so it is pinned to a
+single Keycloak version (currently 26.6.3) rather than a version range - see
+[VERSIONING.md](./VERSIONING.md). Don't override `-Dkeycloak.version` expecting
+it to compile; it won't.
 
 ## Pull requests
 

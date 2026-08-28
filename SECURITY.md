@@ -11,5 +11,5 @@ reasonable window to release a fix before any public write-up.
 
 ## Supported versions
 
-Security fixes target the latest released minor version. The extension is supported
-against Keycloak 26.
+Security fixes target the latest released version. The extension is pinned to and
+supported against **Keycloak 26.6.3 only** (see VERSIONING.md in the repo root).

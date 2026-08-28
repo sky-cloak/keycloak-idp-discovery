@@ -1,14 +1,18 @@
 package io.skycloak.keycloak.idpdiscovery;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.keycloak.Config;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.AuthenticatorFactory;
+import org.keycloak.authentication.authenticators.browser.WebAuthnConditionalUIAuthenticator;
 import org.keycloak.models.AuthenticationExecutionModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.credential.PasswordCredentialModel;
+import org.keycloak.models.credential.WebAuthnCredentialModel;
 import org.keycloak.provider.ProviderConfigProperty;
 
 public final class IdpDiscoveryAuthenticatorFactory implements AuthenticatorFactory {
@@ -33,6 +37,16 @@ public final class IdpDiscoveryAuthenticatorFactory implements AuthenticatorFact
     @Override
     public String getReferenceCategory() {
         return PasswordCredentialModel.TYPE;
+    }
+
+    @Override
+    public Set<String> getOptionalReferenceCategories(KeycloakSession session) {
+        // Matches stock UsernameFormFactory: this authenticator's passkey passthrough
+        // branch (see IdpDiscoveryAuthenticator.action()) means it can also satisfy
+        // the passwordless credential category, which LoA-aware flows check for.
+        return WebAuthnConditionalUIAuthenticator.isPasskeysEnabled(session)
+                ? Collections.singleton(WebAuthnCredentialModel.TYPE_PASSWORDLESS)
+                : AuthenticatorFactory.super.getOptionalReferenceCategories(session);
     }
 
     @Override

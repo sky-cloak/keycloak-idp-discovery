@@ -27,8 +27,10 @@ This extension does one thing, built for the split case:
   replacement for that authenticator, not an extra step in front of it.
 - **After resolving the user, checks whether they already have a linked identity provider.** If
   they have exactly one, redirects there immediately, skipping password/passkey entirely.
-- **If they have none, falls through exactly like `auth-username-form` would** and the flow
-  continues to whatever comes next (password, passkey, etc.), unchanged.
+- **If they have none, or more than one, falls through exactly like `auth-username-form`
+  would** and the flow continues to whatever comes next (password, passkey, etc.),
+  unchanged. Picking one of several linked providers isn't this extension's call to
+  make silently, so ambiguous cases are left to the rest of the flow.
 
 No domain matching, no email-verification gating, no configuration surface. If it becomes
 necessary later, it can grow one, deliberately kept out of the first version.

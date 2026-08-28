@@ -9,15 +9,19 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 import org.keycloak.WebAuthnConstants;
 import org.keycloak.authentication.AuthenticationFlowContext;
+import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticator;
+import org.keycloak.authentication.authenticators.broker.util.SerializedBrokeredIdentityContext;
 import org.keycloak.authentication.authenticators.browser.IdentityProviderAuthenticator;
 import org.keycloak.authentication.authenticators.browser.UsernamePasswordForm;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.FederatedIdentityModel;
+import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
-import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.messages.Messages;
+import org.keycloak.sessions.AuthenticationSessionModel;
 
 /**
  * The username-only half of a split browser flow, with a redirect for users
@@ -36,7 +40,14 @@ public final class IdpDiscoveryAuthenticator extends UsernamePasswordForm {
     @Override
     public void authenticate(AuthenticationFlowContext context) {
         if (context.getUser() != null) {
-            redirectOrContinue(context, false);
+            // A pre-set context user here almost always means we're continuing right
+            // after that same user brokered in via an IdP (post-broker-login, or a
+            // step-up re-auth in the same session). Redirecting straight back to it
+            // would loop. Stock UsernameForm.authenticate() guards this exact case by
+            // filtering the just-used IdP (BROKERED_CONTEXT_NOTE) out of the user's
+            // linked-broker set before deciding whether to short-circuit; mirror that
+            // here before picking a redirect target.
+            redirectOrContinue(context, false, brokeredIdpAlias(context));
             return;
         }
 
@@ -70,7 +81,7 @@ public final class IdpDiscoveryAuthenticator extends UsernamePasswordForm {
             return;
         }
 
-        redirectOrContinue(context, true);
+        redirectOrContinue(context, true, null);
     }
 
     @Override
@@ -94,9 +105,9 @@ public final class IdpDiscoveryAuthenticator extends UsernamePasswordForm {
                 : Messages.INVALID_USERNAME;
     }
 
-    private void redirectOrContinue(AuthenticationFlowContext context, boolean resolvedFromForm) {
+    private void redirectOrContinue(AuthenticationFlowContext context, boolean resolvedFromForm, String excludedIdpAlias) {
         LinkedIdentityProviderSelection selection = linkedIdentityProviderSelection(
-                context.getSession(), context.getRealm(), context.getUser());
+                context.getSession(), context.getRealm(), context.getUser(), excludedIdpAlias);
         if (selection.providerAlias() != null) {
             IDP_REDIRECTOR.redirectTo(context, selection.providerAlias());
             return;
@@ -115,20 +126,48 @@ public final class IdpDiscoveryAuthenticator extends UsernamePasswordForm {
         }
     }
 
-    static LinkedIdentityProviderSelection selectLinkedIdentityProvider(Stream<FederatedIdentityModel> identities) {
-        List<FederatedIdentityModel> firstTwo = identities.limit(2).toList();
-        if (firstTwo.size() == 1) {
-            return new LinkedIdentityProviderSelection(firstTwo.get(0).getIdentityProvider(), false);
+    /**
+     * Selects a redirect target from a user's linked identity providers, excluding
+     * {@code excludedIdpAlias} (the IdP that just brokered this user in, if any) so
+     * the re-authentication path can't loop back to where it came from. Mirrors
+     * {@code UsernameForm.hasLinkedBrokers()}'s filtering, adapted to also pick the
+     * one remaining candidate when exactly one survives the filter.
+     */
+    static LinkedIdentityProviderSelection selectLinkedIdentityProvider(
+            Stream<FederatedIdentityModel> identities, String excludedIdpAlias) {
+        List<FederatedIdentityModel> candidates = identities
+                .filter(identity -> excludedIdpAlias == null || !excludedIdpAlias.equals(identity.getIdentityProvider()))
+                .limit(2)
+                .toList();
+        if (candidates.size() == 1) {
+            return new LinkedIdentityProviderSelection(candidates.get(0).getIdentityProvider(), false);
         }
-        return new LinkedIdentityProviderSelection(null, firstTwo.size() > 1);
+        return new LinkedIdentityProviderSelection(null, candidates.size() > 1);
     }
 
     private static LinkedIdentityProviderSelection linkedIdentityProviderSelection(
-            KeycloakSession session, org.keycloak.models.RealmModel realm, UserModel user) {
+            KeycloakSession session, RealmModel realm, UserModel user, String excludedIdpAlias) {
         try (Stream<FederatedIdentityModel> identities = session.users()
                 .getFederatedIdentitiesStream(realm, user)) {
-            return selectLinkedIdentityProvider(identities);
+            return selectLinkedIdentityProvider(identities, excludedIdpAlias);
         }
+    }
+
+    /**
+     * The alias of the identity provider that brokered the current auth session's
+     * user in, if any. Read from the same {@code BROKERED_CONTEXT_NOTE} that stock
+     * {@code UsernameForm} checks, via the same {@link SerializedBrokeredIdentityContext}
+     * deserialization path.
+     */
+    private static String brokeredIdpAlias(AuthenticationFlowContext context) {
+        AuthenticationSessionModel authSession = context.getAuthenticationSession();
+        SerializedBrokeredIdentityContext serializedCtx = SerializedBrokeredIdentityContext
+                .readFromAuthenticationSession(authSession, AbstractIdpAuthenticator.BROKERED_CONTEXT_NOTE);
+        if (serializedCtx == null) {
+            return null;
+        }
+        IdentityProviderModel idpConfig = serializedCtx.deserialize(context.getSession(), authSession).getIdpConfig();
+        return idpConfig == null ? null : idpConfig.getAlias();
     }
 
     record LinkedIdentityProviderSelection(String providerAlias, boolean ambiguous) {

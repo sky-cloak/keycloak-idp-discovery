@@ -15,7 +15,7 @@ class IdpDiscoveryAuthenticatorTest {
     @Test
     void continuesWhenUserHasNoLinkedIdentityProviders() {
         IdpDiscoveryAuthenticator.LinkedIdentityProviderSelection selection =
-                IdpDiscoveryAuthenticator.selectLinkedIdentityProvider(Stream.empty());
+                IdpDiscoveryAuthenticator.selectLinkedIdentityProvider(Stream.empty(), null);
 
         assertNull(selection.providerAlias());
         assertFalse(selection.ambiguous());
@@ -25,7 +25,7 @@ class IdpDiscoveryAuthenticatorTest {
     void redirectsWhenUserHasExactlyOneLinkedIdentityProvider() {
         IdpDiscoveryAuthenticator.LinkedIdentityProviderSelection selection =
                 IdpDiscoveryAuthenticator.selectLinkedIdentityProvider(
-                        Stream.of(new FederatedIdentityModel("google", "external-id", "person@example.test")));
+                        Stream.of(new FederatedIdentityModel("google", "external-id", "person@example.test")), null);
 
         assertEquals("google", selection.providerAlias());
         assertFalse(selection.ambiguous());
@@ -36,9 +36,31 @@ class IdpDiscoveryAuthenticatorTest {
         IdpDiscoveryAuthenticator.LinkedIdentityProviderSelection selection =
                 IdpDiscoveryAuthenticator.selectLinkedIdentityProvider(Stream.of(
                         new FederatedIdentityModel("google", "google-id", "person@example.test"),
-                        new FederatedIdentityModel("saml", "saml-id", "person@example.test")));
+                        new FederatedIdentityModel("saml", "saml-id", "person@example.test")), null);
 
         assertNull(selection.providerAlias());
         assertTrue(selection.ambiguous());
+    }
+
+    @Test
+    void fallsThroughInsteadOfLoopingWhenOnlyLinkedProviderIsTheOneJustBrokeredIn() {
+        IdpDiscoveryAuthenticator.LinkedIdentityProviderSelection selection =
+                IdpDiscoveryAuthenticator.selectLinkedIdentityProvider(
+                        Stream.of(new FederatedIdentityModel("google", "external-id", "person@example.test")),
+                        "google");
+
+        assertNull(selection.providerAlias());
+        assertFalse(selection.ambiguous());
+    }
+
+    @Test
+    void redirectsToTheOtherProviderWhenExcludingTheOneJustBrokeredIn() {
+        IdpDiscoveryAuthenticator.LinkedIdentityProviderSelection selection =
+                IdpDiscoveryAuthenticator.selectLinkedIdentityProvider(Stream.of(
+                        new FederatedIdentityModel("google", "google-id", "person@example.test"),
+                        new FederatedIdentityModel("saml", "saml-id", "person@example.test")), "google");
+
+        assertEquals("saml", selection.providerAlias());
+        assertFalse(selection.ambiguous());
     }
 }

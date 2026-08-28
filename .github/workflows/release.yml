@@ -45,7 +45,9 @@ jobs:
         id: notes
         run: |
           set -euo pipefail
-          PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${GITHUB_REF_NAME}$" | head -n1 || true)
+          # Nearest ANCESTOR tag on this branch's history, not merely the highest
+          # version number - avoids picking up an out-of-order back-tagged release.
+          PREV_TAG=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
           ARTIFACT=$(ls target/*.jar | grep -v -E '(sources|javadoc)\.jar$' | head -n1)
           ARTIFACT_NAME=$(basename "$ARTIFACT")
           {
@@ -101,13 +103,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine image tags
+        id: image-tags
+        run: |
+          TAGS="ghcr.io/sky-cloak/keycloak-idp-discovery:${GITHUB_REF_NAME}"
+          if [[ "$GITHUB_REF_NAME" != *-* ]]; then
+            # Only a full release (no prerelease suffix, e.g. v0.1.0-rc1) moves
+            # :latest - a prerelease tag must never clobber it.
+            TAGS="${TAGS}
+          ghcr.io/sky-cloak/keycloak-idp-discovery:latest"
+          fi
+          {
+            echo "tags<<EOF"
+            echo "$TAGS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build and push OCI artifact
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64
-          tags: |
-            ghcr.io/sky-cloak/keycloak-idp-discovery:${{ github.ref_name }}
-            ghcr.io/sky-cloak/keycloak-idp-discovery:latest
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.image-tags.outputs.tags }}
