@@ -5,6 +5,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # Pinned to a single Keycloak version on purpose: this extends internal
+      # implementation classes that are not stable across 26.x patch releases
+      # (confirmed against 26.2.0 - see VERSIONING.md). A bump here needs a
+      # deliberate compile+live check, not an automated PR.
+      - dependency-name: "org.keycloak:*"
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
