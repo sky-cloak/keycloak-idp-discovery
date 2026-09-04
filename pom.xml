@@ -30,7 +30,7 @@
              (confirmed: 26.2.0 does not). See VERSIONING.md. -->
         <keycloak.version>26.7.3</keycloak.version>
 
-        <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
+        <jakarta.ws.rs.version>4.0.0</jakarta.ws.rs.version>
         <junit.version>5.10.2</junit.version>
     </properties>
 
