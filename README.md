@@ -62,7 +62,7 @@ passkey, and second-factor steps after it are untouched.
 
 ## Keycloak compatibility
 
-Built against and **pinned to Keycloak 26.6.3 only**. This extends Keycloak's internal
+Built against and **pinned to Keycloak 26.7.3 only**. This extends Keycloak's internal
 implementation classes (`UsernamePasswordForm`, `IdentityProviderAuthenticator`) for correctness
 rather than reimplementing username/password/broker-redirect logic from scratch, and those
 internal classes genuinely differ across 26.x patch releases - confirmed, this does not compile

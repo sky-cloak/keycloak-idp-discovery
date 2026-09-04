@@ -10,7 +10,7 @@ mvn package    # build + unit tests, against the pinned Keycloak version (see po
 
 JDK 21 is used to build; the jar targets bytecode 17. This extends Keycloak's
 internal implementation classes, not just the public SPI, so it is pinned to a
-single Keycloak version (currently 26.6.3) rather than a version range - see
+single Keycloak version (currently 26.7.3) rather than a version range - see
 [VERSIONING.md](./VERSIONING.md). Don't override `-Dkeycloak.version` expecting
 it to compile; it won't.
 

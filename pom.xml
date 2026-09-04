@@ -6,7 +6,7 @@
 
     <groupId>io.skycloak.keycloak</groupId>
     <artifactId>keycloak-idp-discovery</artifactId>
-    <version>0.1.1</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
 
     <name>Keycloak IdP Discovery</name>
@@ -28,7 +28,7 @@
              extends Keycloak's internal implementation classes, not just the public
              SPI, so other 26.x versions are not expected to compile without changes
              (confirmed: 26.2.0 does not). See VERSIONING.md. -->
-        <keycloak.version>26.6.3</keycloak.version>
+        <keycloak.version>26.7.3</keycloak.version>
 
         <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
         <junit.version>5.10.2</junit.version>
