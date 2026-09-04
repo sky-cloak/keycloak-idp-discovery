@@ -63,4 +63,15 @@ class IdpDiscoveryAuthenticatorTest {
         assertEquals("saml", selection.providerAlias());
         assertFalse(selection.ambiguous());
     }
+
+    @Test
+    void treatsAUserChosenOnTheForgotPasswordScreenAsUnresolved() {
+        assertTrue(IdpDiscoveryAuthenticator.isResetPasswordUser("true"));
+    }
+
+    @Test
+    void leavesAnOrdinaryPreSetUserAlone() {
+        assertFalse(IdpDiscoveryAuthenticator.isResetPasswordUser(null));
+        assertFalse(IdpDiscoveryAuthenticator.isResetPasswordUser("false"));
+    }
 }

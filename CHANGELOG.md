@@ -4,6 +4,28 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to the versioning
 policy in [VERSIONING.md](./VERSIONING.md).
 
+## [0.2.0] - 2026-09-03
+
+Rebuilt against Keycloak 26.7.3, so the fleet image can move off 26.6.3 and pick
+up the reset-credentials account-takeover fix (CVE-2026-18963, fixed upstream in
+26.7.2). Keycloak 26.6.3 is no longer supported by this artifact.
+
+- **Security:** a user picked on the unauthenticated "forgot password" screen is
+  no longer inherited as an already-resolved identity by the username step.
+  Keycloak 26.7.x added the same clear at the top of
+  `UsernamePasswordForm.authenticate`, but this class short-circuits on a pre-set
+  user before delegating to `super`, so the upstream guard would not have run on
+  that branch. Stock `UsernameForm` has the same short-circuit and the same gap.
+- **Compatibility:** now built and pinned against Keycloak 26.7.3. No other
+  source change was needed: every internal class this extension touches
+  (`UsernamePasswordForm`, `AbstractUsernameFormAuthenticator.validateUser`,
+  `IdentityProviderAuthenticator`, `WebAuthnConditionalUIAuthenticator`,
+  `WebAuthnConstants`, `PasswordCredentialModel`, `FederatedIdentityModel`)
+  compiles unchanged, and `UsernameForm`, `UsernameFormFactory` and
+  `IdentityProviderAuthenticator` are byte-for-byte identical between the two
+  versions.
+- CI and release now build against 26.7.3.
+
 ## [0.1.1] - 2026-08-28
 
 Fixes found by adversarial review before going public.

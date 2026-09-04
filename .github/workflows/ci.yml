@@ -27,6 +27,6 @@ jobs:
       # classes (UsernamePasswordForm, IdentityProviderAuthenticator), not just
       # the public SPI surface, and those genuinely differ across 26.x patch
       # lines - confirmed: this does not compile against 26.2.0. Pinned to
-      # 26.6.3 only. See VERSIONING.md.
-      - name: Test and package (Keycloak 26.6.3)
-        run: mvn -B -Dkeycloak.version=26.6.3 verify
+      # 26.7.3 only. See VERSIONING.md.
+      - name: Test and package (Keycloak 26.7.3)
+        run: mvn -B -Dkeycloak.version=26.7.3 verify

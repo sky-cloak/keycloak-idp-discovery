@@ -37,9 +37,9 @@ jobs:
 
       # This extends Keycloak's internal implementation classes (not just the
       # public SPI), which genuinely differ across 26.x patch lines - no
-      # secondary older-version compile check here. Pinned to 26.6.3 only.
-      - name: Build release JAR against Keycloak 26.6.3
-        run: mvn -B -Dkeycloak.version=26.6.3 package
+      # secondary older-version compile check here. Pinned to 26.7.3 only.
+      - name: Build release JAR against Keycloak 26.7.3
+        run: mvn -B -Dkeycloak.version=26.7.3 package
 
       - name: Compose release notes
         id: notes
@@ -63,7 +63,7 @@ jobs:
             echo
             echo "## Keycloak compatibility"
             echo
-            echo "Built against and pinned to **Keycloak 26.6.3** only. This extends Keycloak's"
+            echo "Built against and pinned to **Keycloak 26.7.3** only. This extends Keycloak's"
             echo "internal implementation classes, not just the public SPI, so it is not expected"
             echo "to compile against other 26.x versions without changes."
             echo

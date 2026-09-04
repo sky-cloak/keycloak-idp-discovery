@@ -13,6 +13,7 @@ import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticato
 import org.keycloak.authentication.authenticators.broker.util.SerializedBrokeredIdentityContext;
 import org.keycloak.authentication.authenticators.browser.IdentityProviderAuthenticator;
 import org.keycloak.authentication.authenticators.browser.UsernamePasswordForm;
+import org.keycloak.authentication.authenticators.resetcred.ResetCredentialChooseUser;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.IdentityProviderModel;
@@ -39,6 +40,8 @@ public final class IdpDiscoveryAuthenticator extends UsernamePasswordForm {
 
     @Override
     public void authenticate(AuthenticationFlowContext context) {
+        clearUserIfComingFromResetPassword(context);
+
         if (context.getUser() != null) {
             // A pre-set context user here almost always means we're continuing right
             // after that same user brokered in via an IdP (post-broker-login, or a
@@ -66,7 +69,7 @@ public final class IdpDiscoveryAuthenticator extends UsernamePasswordForm {
         }
 
         // This is the same passkey submission branch used by UsernamePasswordForm
-        // (and therefore UsernameForm) in Keycloak 26.6.3.
+        // (and therefore UsernameForm) in Keycloak 26.7.3.
         if (webauthnAuth != null && webauthnAuth.isPasskeysEnabled()
                 && (formData.containsKey(WebAuthnConstants.AUTHENTICATOR_DATA)
                 || formData.containsKey(WebAuthnConstants.ERROR))) {
@@ -103,6 +106,28 @@ public final class IdpDiscoveryAuthenticator extends UsernamePasswordForm {
         return context.getRealm().isLoginWithEmailAllowed()
                 ? Messages.INVALID_USERNAME_OR_EMAIL
                 : Messages.INVALID_USERNAME;
+    }
+
+    /**
+     * A user picked on the unauthenticated "forgot password" screen must not be
+     * inherited by the login step as an already-resolved identity. Keycloak 26.7.x
+     * added this same clear at the top of {@code UsernamePasswordForm.authenticate},
+     * where it is private; because this class short-circuits on a pre-set user
+     * before delegating to {@code super}, that guard would otherwise never run on
+     * the branch that skips the username form.
+     */
+    private static void clearUserIfComingFromResetPassword(AuthenticationFlowContext context) {
+        AuthenticationSessionModel authSession = context.getAuthenticationSession();
+        if (!isResetPasswordUser(authSession.getAuthNote(ResetCredentialChooseUser.RESET_CREDENTIAL_USER_CHOSEN))) {
+            return;
+        }
+        context.clearUser();
+        authSession.removeAuthNote(ResetCredentialChooseUser.RESET_CREDENTIAL_USER_CHOSEN);
+    }
+
+    /** Split out from {@link #clearUserIfComingFromResetPassword} so it is unit-testable. */
+    static boolean isResetPasswordUser(String authNoteValue) {
+        return "true".equals(authNoteValue);
     }
 
     private void redirectOrContinue(AuthenticationFlowContext context, boolean resolvedFromForm, String excludedIdpAlias) {
