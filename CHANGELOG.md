@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to the versioning
 policy in [VERSIONING.md](./VERSIONING.md).
 
+## [0.3.0] - 2026-11-06
+
+Rebuilt against Keycloak 26.8.1. No code changes here, but login behavior inherited from
+Keycloak changes.
+
+- **Compatibility:** now built and pinned against Keycloak 26.8.1. Keycloak 26.7.3 is no
+  longer supported by this artifact.
+- **Inherited from Keycloak 26.8.1:** the identity provider redirect falls back to the attempted
+  username for `login_hint`, over-long usernames are rejected as an invalid user, and unknown users
+  get a dummy password hash.
+
 ## [0.2.0] - 2026-09-03
 
 Rebuilt against Keycloak 26.7.3, so the fleet image can move off 26.6.3 and pick

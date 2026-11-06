@@ -69,7 +69,7 @@ public final class IdpDiscoveryAuthenticator extends UsernamePasswordForm {
         }
 
         // This is the same passkey submission branch used by UsernamePasswordForm
-        // (and therefore UsernameForm) in Keycloak 26.7.3.
+        // (and therefore UsernameForm) in Keycloak 26.8.1.
         if (webauthnAuth != null && webauthnAuth.isPasskeysEnabled()
                 && (formData.containsKey(WebAuthnConstants.AUTHENTICATOR_DATA)
                 || formData.containsKey(WebAuthnConstants.ERROR))) {
