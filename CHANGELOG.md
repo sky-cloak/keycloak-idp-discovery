@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to the versioning
 policy in [VERSIONING.md](./VERSIONING.md).
 
-## [0.3.0-rc.1] - 2026-11-06
+## [0.3.0] - 2026-11-06
 
 Rebuilt against Keycloak 26.8.1. No code changes.
 
