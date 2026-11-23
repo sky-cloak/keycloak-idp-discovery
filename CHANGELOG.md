@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to the versioning
 policy in [VERSIONING.md](./VERSIONING.md).
 
+## [0.4.0] - 2026-11-23
+
+Rebuilt against Keycloak 26.8.2. No code changes; the Keycloak classes this extension builds on
+are unchanged between 26.8.1 and 26.8.2.
+
+- **Compatibility:** now built and pinned against Keycloak 26.8.2. Keycloak 26.8.1 is no longer
+  supported by this artifact.
+
 ## [0.3.0] - 2026-11-06
 
 Rebuilt against Keycloak 26.8.1. No code changes here, but login behavior inherited from
